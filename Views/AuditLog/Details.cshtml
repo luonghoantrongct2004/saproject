@@ -1,0 +1,86 @@
+﻿@model SAProject.Models.AuditLog
+@{
+    Layout = "_LayoutAdmin";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Chi tiết Audit Log #@Model.Id</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th width="40%">ID:</th>
+                                <td>@Model.Id</td>
+                            </tr>
+                            <tr>
+                                <th>User ID:</th>
+                                <td><code>@Model.UserId</code></td>
+                            </tr>
+                            <tr>
+                                <th>User Name:</th>
+                                <td>@(Model.UserName ?? "N/A")</td>
+                            </tr>
+                            <tr>
+                                <th>Hành động:</th>
+                                <td>
+                                    <span class="badge
+                                        @(Model.Action.Contains("Success") || Model.Action.Contains("Created") ? "bg-success" :
+                                                                                    Model.Action.Contains("Failed") || Model.Action.Contains("Error") ? "bg-danger" :
+                                                                                    Model.Action.Contains("Login") || Model.Action.Contains("Logout") ? "bg-info" :
+                                                                                    Model.Action.Contains("Delete") ? "bg-warning" : "bg-primary")">
+                                        @Model.Action
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th width="40%">Controller:</th>
+                                <td>@(Model.ControllerName ?? "N/A")</td>
+                            </tr>
+                            <tr>
+                                <th>Action:</th>
+                                <td>@(Model.ActionName ?? "N/A")</td>
+                            </tr>
+                            <tr>
+                                <th>Request Path:</th>
+                                <td><code>@(Model.RequestPath ?? "N/A")</code></td>
+                            </tr>
+                            <tr>
+                                <th>IP Address:</th>
+                                <td><code>@(Model.IpAddress ?? "N/A")</code></td>
+                            </tr>
+                            <tr>
+                                <th>Thời gian:</th>
+                                <td>@Model.Timestamp.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.RequestPath))
+                {
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Thông tin Request</h6>
+                                </div>
+                                <div class="card-body">
+                                    <pre class="bg-dark text-light p-3 rounded"><code>@Model.RequestPath</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

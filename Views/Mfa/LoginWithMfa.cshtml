@@ -1,0 +1,365 @@
+﻿@{
+    ViewData["Title"] = "Xác thực đa yếu tố";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SAProject</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" crossorigin="anonymous">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .mfa-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .mfa-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .mfa-header::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+                background-size: 20px 20px;
+            }
+
+        .mfa-body {
+            padding: 2.5rem;
+        }
+
+        .token-input {
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            letter-spacing: 15px;
+            padding: 20px;
+            border: 3px solid #e9ecef;
+            border-radius: 15px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+            .token-input:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 0 0.3rem rgba(102, 126, 234, 0.1);
+                background: white;
+                transform: translateY(-2px);
+            }
+
+        .btn-mfa {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+            .btn-mfa:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            }
+
+        .btn-resend {
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+            .btn-resend:hover {
+                background: #667eea;
+                color: white;
+            }
+
+        .security-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: pulse 2s infinite;
+        }
+
+        .countdown {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .timer {
+            font-weight: bold;
+            color: #dc3545;
+        }
+
+        @@keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .alert {
+            border: none;
+            border-radius: 12px;
+        }
+
+        .alert-warning {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+        }
+
+        .alert-info {
+            background: rgba(23, 162, 184, 0.1);
+            border-left: 4px solid #17a2b8;
+        }
+
+        .alert-success {
+            background: rgba(40, 167, 69, 0.1);
+            border-left: 4px solid #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="mfa-card">
+                    <div class="mfa-header">
+                        <div class="security-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h2 class="fw-bold mb-2">Xác thực đa yếu tố</h2>
+                        <p class="mb-0 opacity-75">Bảo mật tài khoản của bạn</p>
+                    </div>
+
+                    <div class="mfa-body">
+                        <!-- Success Message -->
+                        @if (TempData["SuccessMessage"] != null)
+                        {
+                            <div class="alert alert-success alert-dismissible fade show">
+                                <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        }
+
+                        <!-- Error Message -->
+                        @if (TempData["ErrorMessage"] != null)
+                        {
+                            <div class="alert alert-danger alert-dismissible fade show">
+                                <i class="fas fa-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        }
+
+                        <!-- Hiển thị lý do MFA -->
+                        @if (ViewData["MfaReason"] != null)
+                        {
+                            <div class="alert alert-warning">
+                                <h6 class="alert-heading mb-2">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Thông báo bảo mật
+                                </h6>
+                                <p class="mb-0">@ViewData["MfaReason"]</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <h6 class="alert-heading mb-2">
+                                    <i class="fas fa-shield-alt me-2"></i>Bảo mật nâng cao
+                                </h6>
+                                <p class="mb-0">Để bảo vệ tài khoản của bạn, chúng tôi yêu cầu xác thực bổ sung.</p>
+                            </div>
+                        }
+
+                        <p class="text-muted text-center mb-4">
+                            <i class="fas fa-envelope me-2"></i>
+                            Chúng tôi đã gửi mã xác thực 6 chữ số đến email của bạn
+                        </p>
+
+                        <form method="post" id="mfaForm">
+                            <input type="hidden" name="rememberMe" value="@ViewData["RememberMe"]" />
+                            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+
+                            <div class="mb-4">
+                                <label for="token" class="form-label fw-semibold mb-3">Mã xác thực</label>
+                                <input type="text"
+                                       class="form-control token-input"
+                                       id="token"
+                                       name="token"
+                                       maxlength="6"
+                                       pattern="[0-9]{6}"
+                                       required
+                                       placeholder="000000"
+                                       inputmode="numeric">
+                                <div class="form-text text-center mt-2">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Mã có hiệu lực trong
+                                    <span class="timer" id="countdown">10:00</span>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-mfa text-white">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    Xác thực và Đăng nhập
+                                </button>
+
+                                <button type="submit"
+                                        formaction="@Url.Action("ResendMfaToken")"
+                                        class="btn btn-resend"
+                                        id="resendBtn">
+                                    <i class="fas fa-redo me-2"></i>
+                                    Gửi lại mã
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="text-center mt-4">
+                            <a href="@Url.Action("Login", "Account")" class="text-decoration-none">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                Quay lại đăng nhập
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Info -->
+                <div class="text-center text-white mt-4">
+                    <small>
+                        <i class="fas fa-info-circle me-1"></i>
+                        Mã xác thực sẽ tự động gửi lại sau 2 phút
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js" crossorigin="anonymous"></script>
+
+    <script>
+        // Auto focus và tự động submit
+        document.getElementById('token')?.focus();
+
+        // Tự động submit khi nhập đủ 6 số
+        document.getElementById('token')?.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value.length === 6) {
+                document.getElementById('mfaForm').submit();
+            }
+        });
+
+        // Countdown timer
+        let timeLeft = 600; // 10 minutes in seconds
+        const countdownElement = document.getElementById('countdown');
+        const resendBtn = document.getElementById('resendBtn');
+
+        function updateCountdown() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            countdownElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            if (timeLeft > 0) {
+                timeLeft--;
+                setTimeout(updateCountdown, 1000);
+            } else {
+                countdownElement.textContent = 'Hết hạn';
+                countdownElement.className = 'text-danger fw-bold';
+                resendBtn.disabled = false;
+                resendBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Gửi lại mã';
+            }
+        }
+
+        // Start countdown
+        updateCountdown();
+
+        // Disable resend button initially
+        resendBtn.disabled = true;
+        resendBtn.innerHTML = '<i class="fas fa-clock me-2"></i>Gửi lại mã (2 phút)';
+
+        // Enable resend after 2 minutes
+        setTimeout(() => {
+            resendBtn.disabled = false;
+            resendBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Gửi lại mã';
+        }, 120000); // 2 minutes
+
+        // Add loading state to form submission
+        document.getElementById('mfaForm')?.addEventListener('submit', function() {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xác thực...';
+                submitBtn.disabled = true;
+            }
+        });
+
+        // Prevent form submission on resend button when disabled
+        document.getElementById('resendBtn')?.addEventListener('click', function(e) {
+            if (this.disabled) {
+                e.preventDefault();
+            } else {
+                this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang gửi...';
+                this.disabled = true;
+            }
+        });
+
+        // Auto capitalize and format token input
+        document.getElementById('token')?.addEventListener('keydown', function(e) {
+            // Allow only numbers
+            if (!/^\d$/.test(e.key) &&
+                !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+
+        // Paste event handling
+        document.getElementById('token')?.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pasteData = e.clipboardData.getData('text').replace(/[^0-9]/g, '');
+            this.value = pasteData.slice(0, 6);
+
+            if (this.value.length === 6) {
+                document.getElementById('mfaForm').submit();
+            }
+        });
+    </script>
+</body>
+</html>
